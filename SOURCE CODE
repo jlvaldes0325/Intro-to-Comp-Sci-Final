@@ -1,0 +1,128 @@
+Code:
+
+import random
+
+class Character:
+    def __init__(self, name, speed, attack):
+        self.name = name
+        self.speed = speed
+        self.attack = attack
+
+    def roll_stats(self):
+        self.speed += random.randint(1, 6)
+        self.attack += random.randint(1, 6)
+
+    def show_stats(self):
+        print(f"King {self.name}'s Party Base Stats - Speed: {self.speed}, Attack: {self.attack}")
+
+class PartyMember:
+    def __init__(self, name, attack_bonus, speed_bonus, luck_bonus):
+        self.name = name
+        self.attack_bonus = attack_bonus
+        self.speed_bonus = speed_bonus
+        self.luck_bonus = luck_bonus
+        self.is_alive = True
+
+    def die(self):
+        self.is_alive = False
+
+def create_enemy(wave_number):
+    base_health = random.randint(5, 20)
+    base_evasiveness = random.randint(1, 10)
+
+    # Increase difficulty with each wave
+    wave_multiplier = 1 + 0.1 * wave_number + random.uniform(0, 0.1)
+
+    if wave_number % 5 == 0:
+        # Exponentially increase difficulty every 5 waves
+        wave_multiplier = wave_multiplier ** (wave_number // 5)
+
+    health_multiplier = wave_multiplier
+    evasiveness_multiplier = wave_multiplier
+
+    return {
+        'health': int(base_health * health_multiplier),
+        'evasiveness': int(base_evasiveness * evasiveness_multiplier),
+    }
+
+def attack_enemy(player, party_member, enemy):
+    character_attack = player.attack + party_member.attack_bonus
+    character_speed = player.speed + party_member.speed_bonus
+
+    enemy_health = enemy['health']
+    enemy_evasiveness = enemy['evasiveness']
+
+    if character_attack > enemy_health and character_speed > enemy_evasiveness:
+        print(f"{player.name} defeats the enemy!")
+        return True
+    else:
+        print(f"{player.name} misses the attack. Enemy health: {enemy_health}, Enemy evasiveness: {enemy_evasiveness}")
+        party_member.die()
+        return False
+
+def game():
+    player_name = input("How Shall We Address you Sire?: ")
+    player = Character(player_name, 5, 5)
+    wizard = PartyMember("Wizard", 1, 3, 1)
+    knight = PartyMember("Knight", 3, 1, 0)
+    archer = PartyMember("Archer", 2, 2, 1)
+
+    party = [wizard, knight, archer]
+
+    wave_count = 1
+
+    while any(member.is_alive for member in party):
+        print(f"\n=== Wave {wave_count} ===")
+
+        # Roll stats for player and choose a class
+        player.roll_stats()
+        player.show_stats()
+
+        print("\nAvailable fighters:")
+        for i, char_class in enumerate(party):
+            if char_class.is_alive:
+                print(f"{i + 1}. {char_class.name}")
+
+        # Prompt for the selection of an available fighter
+        available_indices = [i for i, char_class in enumerate(party) if char_class.is_alive]
+        if not available_indices:
+            print("All fighters have fallen. Advancing to the next wave.")
+            wave_count += 1
+            for member in party:
+                member.is_alive = True
+            continue
+
+        class_choice = int(input("Enter the number of the fighter: ")) - 1
+
+        # Ensure the selected fighter is available
+        while class_choice not in available_indices:
+            print("Invalid choice. Please select an available fighter.")
+            class_choice = int(input("Enter the number of the fighter: ")) - 1
+
+        selected_class = party[class_choice]
+
+        # Create enemy for the wave
+        enemy = create_enemy(wave_count)
+        print(f"\nAn enemy appears - Health: {enemy['health']}, Evasiveness: {enemy['evasiveness']}")
+
+        # Player attacks the enemy
+        if attack_enemy(player, selected_class, enemy):
+            wave_count += 1
+        else:
+            print(f"{selected_class.name} has fallen!")
+
+            # Check if all party members have died
+            if not any(member.is_alive for member in party):
+                print("All party members have fallen. Game Over.")
+                return
+
+            # Roll stats for the enemy
+            enemy['health'] += random.randint(1, 6)
+            enemy['evasiveness'] += random.randint(1, 6)
+
+    print("Congratulations! You have defeated all waves!")
+
+if __name__ == "__main__":
+    game()
+
+
