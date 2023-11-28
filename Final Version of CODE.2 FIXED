@@ -19,9 +19,9 @@ class PartyMember:
         self.base_attack = base_attack
         self.base_speed = base_speed
         self.base_luck = base_luck
-        self.attack_bonus = 0
-        self.speed_bonus = 0
-        self.luck_bonus = 0
+        self.attack_bonus = base_attack  # Start with base attack as bonus
+        self.speed_bonus = base_speed   # Start with base speed as bonus
+        self.luck_bonus = base_luck     # Start with base luck as bonus
         self.is_alive = True
 
     def die(self):
@@ -50,8 +50,8 @@ def create_enemy(wave_number):
     }
 
 def attack_enemy(player, party_member, enemy):
-    character_attack = player.attack + party_member.base_attack + party_member.attack_bonus
-    character_speed = player.speed + party_member.base_speed + party_member.speed_bonus
+    character_attack = player.attack + party_member.attack_bonus
+    character_speed = player.speed + party_member.speed_bonus
 
     enemy_health = enemy['health']
     enemy_evasiveness = enemy['evasiveness']
